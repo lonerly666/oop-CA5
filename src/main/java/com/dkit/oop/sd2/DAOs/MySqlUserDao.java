@@ -25,6 +25,63 @@ import java.util.List;
 
 public class MySqlUserDao extends MySqlDao implements UserDaoInterface
 {
+    @Override
+    public List<User> findAllUsersLastNameContains(String str) throws DaoException
+    {
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        List<User> users = new ArrayList<>();
+
+        try
+        {
+            //Get connection object using the methods in the super class (MySqlDao.java)...
+            con = this.getConnection();
+
+            String query = "SELECT * FROM USER WHERE LAST_NAME = ?";
+            ps = con.prepareStatement(query);
+            ps.setString(1,str);
+            //Using a PreparedStatement to execute SQL...
+            rs = ps.executeQuery();
+            while (rs.next())
+            {
+                int userId = rs.getInt("USER_ID");
+                String username = rs.getString("USERNAME");
+                String password = rs.getString("PASSWORD");
+                String lastname = rs.getString("LAST_NAME");
+                String firstname = rs.getString("FIRST_NAME");
+                User u = new User(userId, firstname, lastname, username, password);
+                users.add(u);
+            }
+        } catch (SQLException e)
+        {
+            throw new DaoException("findAllUsersContainsLastName() " + e.getMessage());
+        } finally
+        {
+            try
+            {
+                if (rs != null)
+                {
+                    rs.close();
+                }
+                if (ps != null)
+                {
+                    ps.close();
+                }
+                if (con != null)
+                {
+                    freeConnection(con);
+                }
+            } catch (SQLException e)
+            {
+                throw new DaoException("findAllUsers() " + e.getMessage());
+            }
+        }
+        return users;     // may be empty
+    }
+
+
+
 
     @Override
     public List<User> findAllUsers() throws DaoException
