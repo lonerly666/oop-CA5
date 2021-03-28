@@ -35,6 +35,7 @@ public interface UserDaoInterface
 
     public User findUserByUsernamePassword(String uname, String pword) throws DaoException;
 
+    public List<User> findAllUsersLastNameContains(String str) throws DaoException;
 
 
 }

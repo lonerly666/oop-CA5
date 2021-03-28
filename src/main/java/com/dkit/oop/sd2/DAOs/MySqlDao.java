@@ -20,7 +20,7 @@ public class MySqlDao
     {
 
         String driver = "com.mysql.cj.jdbc.Driver";
-        String url = "jdbc:mysql://localhost:3306/user_database";
+        String url = "jdbc:mysql://localhost:3306/oop_CA5_jeremy";
         String username = "root";
         String password = "";
         Connection con = null;
