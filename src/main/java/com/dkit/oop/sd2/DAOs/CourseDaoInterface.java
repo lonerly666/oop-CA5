@@ -8,4 +8,5 @@ import java.util.List;
 public interface CourseDaoInterface
 {
         public List<Course> findAllCourse() throws DaoException;
+        public Course getSpecificCourse(String courseId) throws DaoException;
 }

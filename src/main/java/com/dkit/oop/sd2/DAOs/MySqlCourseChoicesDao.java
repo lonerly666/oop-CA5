@@ -22,7 +22,7 @@ public class MySqlCourseChoicesDao extends MySqlDao implements CourseChoicesDaoI
         try
         {
             con = this.getConnection();
-            String query = "SELECT courseId FROM STUDENT_CHOICES WHERE caoNumber = ? ";
+            String query = "SELECT courseId FROM STUDENT_COURSES WHERE caoNumber = ? ";
             prep = con.prepareStatement(query);
             prep.setInt(1,caoNum);
             rs = prep.executeQuery();
@@ -61,22 +61,23 @@ public class MySqlCourseChoicesDao extends MySqlDao implements CourseChoicesDaoI
         return choiceList;
     }
     @Override
-    public void updateChoice(int caoNum,String courseId) throws DaoException
+    public boolean addChoice(int caoNum,String courseId) throws DaoException
     {
         Connection con = null;
         PreparedStatement prep = null;
+        boolean success = true;
         try
         {
             con = this.getConnection();
-            String query = "INSERT INTO STUDENT_CHOICES (caoNumber,courseId) VALUES (?,?)";
+            String query = "INSERT INTO STUDENT_COURSES (caoNumber,courseId) VALUES (?,?)";
             prep = con.prepareStatement(query);
             prep.setInt(1,caoNum);
             prep.setString(2,courseId);
-            prep.executeQuery();
+            prep.executeUpdate();
         }
         catch (SQLException e)
         {
-            throw new DaoException("updateChoice() "+e.getMessage());
+            success = false;
         }
         finally
         {
@@ -96,5 +97,29 @@ public class MySqlCourseChoicesDao extends MySqlDao implements CourseChoicesDaoI
                 throw new DaoException("updateChoice() "+e.getMessage());
             }
         }
+        return  success;
+    }
+
+    @Override
+    public boolean removeChoice(int caoNum, String courseId) throws DaoException
+    {
+        boolean success = true;
+        Connection con = null;
+        PreparedStatement prep = null;
+        ResultSet rs = null;
+        try
+        {
+            con = this.getConnection();
+            String query = "DELETE FROM STUDENT_COURSES WHERE caoNumber = ? AND courseId = ?";
+            prep = con.prepareStatement(query);
+            prep.setInt(1,caoNum);
+            prep.setString(2,courseId);
+            prep.executeUpdate();
+
+        } catch (SQLException e)
+        {
+            success = false;
+        }
+        return success;
     }
 }

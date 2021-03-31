@@ -1,36 +1,13 @@
 package com.dkit.oop.sd2.BusinessObjects;
 
-/** OOP 2021
- * This App demonstrates the use of a Data Access Object (DAO)
- * to separate Business logic from Database specific logic.
- * It uses DAOs, Data Transfer Objects (DTOs), and
- * a DaoInterface to define a contract between Business Objects
- * and DAOs.
- *
- * "Use a Data Access Object (DAO) to abstract and encapsulate all
- * access to the data source. The DAO manages the connection with
- * the data source to obtain and store data" Ref: oracle.com
- *
- * Here we use one DAO per database table.
- *
- * Use the SQL script included with this project to create the
- * required MySQL user_database and user table
- */
-
-
-
 import com.dkit.oop.sd2.Constants.HomeMenuOption;
 import com.dkit.oop.sd2.Constants.StudentMenuOption;
+import com.dkit.oop.sd2.Constants.UpdateChoiceOption;
 import com.dkit.oop.sd2.DAOs.MySqlCourseChoicesDao;
 import com.dkit.oop.sd2.DAOs.MySqlCourseDao;
 import com.dkit.oop.sd2.DAOs.MySqlStudentDao;
 import com.dkit.oop.sd2.DTOs.Course;
-import com.dkit.oop.sd2.DTOs.Student;
-import com.dkit.oop.sd2.Exceptions.DaoException;
-
-import java.sql.SQLOutput;
 import java.util.*;
-
 
 public class App
 {
@@ -49,37 +26,6 @@ public class App
         MySqlCourseDao courseDao = new MySqlCourseDao();
         MySqlCourseChoicesDao courseChoiceDao = new MySqlCourseChoicesDao();
         mainMenu(studentDao,courseDao,courseChoiceDao);
-
-
-        //        Student s1 = new Student(9912333,"29/04/2000","JnJc0429","doremineo@gmail.com");
-        //        Student s2 = new Student(9912110,"29/04/2000","JnJc0429","doremineo@gmail.com");
-        //        Student s3 = new Student(12345678,"21/03/2000","J123456","doremineo@gmail.com");
-        //        studentManager.addStudent(s1);
-        //        studentManager.addStudent(s2);
-        //        studentManager.addStudent(s3);
-        //        s2.setCaoNumber(1122333);
-        //        studentManager.removeStudent(s2);
-        //        Map<Integer,Student> studentMap = studentManager.getAllStudent();
-        //        for(Map.Entry<Integer,Student>entry:studentMap.entrySet())
-        //        {
-        //            System.out.println(entry.getValue());
-        //        }
-        // display a menu to do things
-        // manual testing of mgr public interface
-
-        //        if ( mgr.login(12345678, "2000-04-29","JnJc0429") )
-        //        {
-        //            Student student = mgr.getStudentDetails(12345678);
-        //            Course course = mgr.getCourseDetails("dk001");
-        //            System.out.println("Student: " + student);
-        //            System.out.println("Course: "+course);
-        //        }
-        //        else
-        //            System.out.println("Not logged in - try again");
-
-
-        //mgr.saveToFile();
-
     }
 
         public void mainMenu (MySqlStudentDao studentDao,MySqlCourseDao courseDao,MySqlCourseChoicesDao courseChoicesDao)
@@ -185,12 +131,16 @@ public class App
                                 loop = false;
                                 break;
                             case DISPLAY_COURSE:
+                                displayCourse(courseDao);
                                 break;
                             case DISPLAY_ALL_COURSE:
+                                displayAllCourse(courseDao);
                                 break;
                             case DISPLAY_CURRENT_CHOICES:
+                                displayCurrentChoice(courseChoicesDao, caoNum);
                                break;
                             case UPDATE_CURRENT_CHOICES:
+                                updateChoice(courseDao,courseChoicesDao, caoNum);
                                 break;
                             default:
                                 System.out.println("Invalid Input");
@@ -221,6 +171,14 @@ public class App
         for (int i = 0; i < StudentMenuOption.values().length; i++)
         {
             System.out.println("\t" + i + "- " + StudentMenuOption.values()[i].toString());
+        }
+        System.out.print("Enter a number to select (0 to quit):> ");
+    }
+        public void printUpdateChoiceMenu () {
+        System.out.println("\n Option to select:");
+        for (int i = 0; i < UpdateChoiceOption.values().length; i++)
+        {
+            System.out.println("\t" + i + "- " + UpdateChoiceOption.values()[i].toString());
         }
         System.out.print("Enter a number to select (0 to quit):> ");
     }
@@ -390,110 +348,193 @@ public class App
             }
         }
 
-        public void addCourse (CourseManager cmg)
+        public void displayCourse(MySqlCourseDao courseDao)
         {
             try
             {
-                System.out.println("Please enter new course id: ");
+                System.out.println("Please enter a course ID: ");
                 String courseId = keyboard.next();
-                System.out.println("Please enter level for this course: ");
-                String level = keyboard.next();
-                System.out.println("Please enter title for this course: ");
-                String title = keyboard.next();
-                title += keyboard.next();
-                System.out.println("Please enter institution for this course: ");
-                String institution = keyboard.next();
-                Course newCourse = new Course(courseId, level, title, institution);
-                cmg.addCourse(newCourse);
-            } catch (InputMismatchException e)
-            {
-                System.out.println("Input mismatch!");
-            }
-
-
-        }
-
-        public void updateChoice (CourseManager cmg, CourseChoiceManager ccmg, Student currentUsr)
-        {
-            String ans = "y";
-            ArrayList<String> selectedCourseList = new ArrayList<>();
-            while (ans.equals("y"))
-            {
-                try
-                {
-                    System.out.println("These are all available courses: ");
-                    for (int i = 0; i < cmg.getAllCourses().size(); i++)
-                    {
-                        System.out.println(cmg.getAllCourses().get(i));
-                    }
-                    System.out.println("Please enter a courseId: ");
-                    String courseId = keyboard.next();
-                    if (cmg.getCourse(courseId) != null)
-                    {
-                        selectedCourseList.add(courseId);
-                        System.out.println("Course Added");
-                    } else
-                    {
-                        System.out.println("There is no such course!");
-                    }
-                    System.out.println("Do you want to choose again? y/(any key)");
-                    ans = keyboard.next();
-                } catch (InputMismatchException e)
-                {
-                    System.out.println("Invalid Input");
-                }
-            }
-            ccmg.updateChoices(currentUsr.getCaoNumber(), selectedCourseList);
-        }
-
-        public void removeCourse (CourseManager cmg, CourseChoiceManager ccmg)
-        {
-            if (cmg.getAllCourses().isEmpty())
-            {
-                System.out.println("There is no course available");
-            } else
-            {
-                System.out.println("These are available courses: ");
-                for (Course c : cmg.getAllCourses())
+                Course c = courseDao.getSpecificCourse(courseId);
+                if(c!=null)
                 {
                     System.out.println(c);
                 }
-                System.out.println("Please enter courseId that you want to remove: ");
-                String courseId = keyboard.next();
-                cmg.removeCourse(courseId);
+                else
+                {
+                    System.out.println("No such course");
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
             }
         }
 
-        public void addStudent (StudentManager smg)
+        public void displayAllCourse(MySqlCourseDao courseDao)
         {
             try
             {
-                System.out.println("Please enter a new cao number: ");
-                int caoNum = keyboard.nextInt();
-                System.out.println("Please enter a new date of birth: ");
-                String dateOfBirth = keyboard.next();
-                System.out.println("Please enter password: ");
-                String password = keyboard.next();
-                if (!dateOfBirth.matches("^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$"))
+                List<Course> courseList = courseDao.findAllCourse();
+                System.out.println("\nHere are all available courses: ");
+                int i =1;
+                for(Course c:courseList)
                 {
-                    System.out.println("Wrong Date of Birth Format (yyyy-mm-dd)");
+                    System.out.println(i+": "+c);
+                    i++;
                 }
-                else if (!password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$"))
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        public void displayCurrentChoice(MySqlCourseChoicesDao courseChoicesDao,int caoNum)
+        {
+            try
+            {
+                List <String> courseList = courseChoicesDao.getStudentChoices(caoNum);
+                System.out.println("\nHere are all your current choices: ");
+                int i =1;
+                for(String s:courseList)
                 {
-                    System.out.println("Wrong password Format ");
+                    System.out.println(i+": "+s);
+                    i++;
                 }
-                else if (!(Integer.toString(caoNum).matches("\\d+") && Integer.toString(caoNum).length() == 8))
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        public void updateChoice (MySqlCourseDao courseDao,MySqlCourseChoicesDao courseChoicesDao,int caoNum)
+        {
+            boolean loop = true;
+            UpdateChoiceOption options;
+            int choose;
+            while (loop)
+            {
+                printUpdateChoiceMenu();
+                try
                 {
-                    System.out.println("Wrong CAO Number format (must contain all numbers and 8 digits)");
+                    choose = keyboard.nextInt();
+                    options = UpdateChoiceOption.values()[choose];
+                    switch (options)
+                    {
+                        case EXIT:
+                            loop = false;
+                            break;
+                        case REMOVE_COURSE:
+                            removeCourse(courseChoicesDao,caoNum);
+                            break;
+                        case ADD_COURSE:
+                            addCourse(courseDao,courseChoicesDao,caoNum);
+                            break;
+                        default:
+                            System.out.println("Invalid Input");
+                    }
+                } catch (InputMismatchException e)
+                {
+                    System.out.println("Invalid Input");
+                    keyboard.nextLine();
+                } catch (NoSuchElementException e)
+                {
+                    System.out.println("DO NOT USE CTRL+D! THIS WILL FORCE THE SYSTEM TO SHUTDOWN! PLEASE RESTART!");
+                    loop = false;
+                } catch (IndexOutOfBoundsException e)
+                {
+                    System.out.println("Invalid Input");
+                    keyboard.nextLine();
+                }
+            }
+
+        }
+
+        public void removeCourse(MySqlCourseChoicesDao courseChoicesDao,int caoNum)
+        {
+            try
+            {
+                List<String> courseList = courseChoicesDao.getStudentChoices(caoNum);
+                if(courseList.isEmpty())
+                {
+                    System.out.println("You have no selected course, please go add some course");
                 }
                 else
                 {
-                    Student newStudent = new Student(caoNum, dateOfBirth, password);
-                    smg.addStudent(newStudent);
+                    System.out.println("Here is your choices: ");
+                    int i = 1;
+                    for (String s : courseList)
+                    {
+                        System.out.println(i + ": " + s);
+                        i++;
+                    }
+                    System.out.println("Please enter course ID that you want to remove: ");
+                    String courseId = keyboard.next();
+                    if(courseChoicesDao.getStudentChoices(caoNum).contains(courseId))
+                    {
+                        if (courseChoicesDao.removeChoice(caoNum, courseId))
+                        {
+                            System.out.println("Course Removed");
+                        }
+                        else
+                        {
+                            System.out.println("Opps, Something went Wrong");
+                        }
+                    }
+                    else
+                    {
+                        System.out.println("Please enter a correct course ID");
+                    }
                 }
-            } catch (InputMismatchException e)
+            }
+            catch (Exception e)
             {
-                System.out.println("Invalid Input!");
+                e.printStackTrace();
+            }
+        }
+
+        public void addCourse(MySqlCourseDao courseDao, MySqlCourseChoicesDao courseChoicesDao,int caoNum)
+        {
+            try
+            {
+                List<Course> courseList = courseDao.findAllCourse();
+                System.out.println("Here are all available courses: ");
+                int i =1;
+                for(Course c : courseList)
+                {
+                    System.out.println(i+": "+c);
+                    i++;
+                }
+                System.out.println("Please enter a course ID that you want to add: ");
+                String courseId = keyboard.next();
+                if(courseDao.getSpecificCourse(courseId)==null)
+                {
+                    System.out.println("Please enter a correct course ID");
+                }
+                else
+                {
+                    if(courseChoicesDao.getStudentChoices(caoNum).contains(courseId))
+                    {
+                        System.out.println("You have already chosen this course!");
+                    }
+                    else
+                    {
+                        if(courseChoicesDao.addChoice(caoNum,courseId))
+                        {
+                            System.out.println("Course Added");
+                        }
+                        else
+                        {
+                            System.out.println("Opps, something went wrong please try again");
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
             }
         }
     }
