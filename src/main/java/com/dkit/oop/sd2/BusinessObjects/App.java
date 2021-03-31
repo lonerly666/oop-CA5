@@ -21,15 +21,14 @@ package com.dkit.oop.sd2.BusinessObjects;
 
 import com.dkit.oop.sd2.Constants.HomeMenuOption;
 import com.dkit.oop.sd2.Constants.StudentMenuOption;
+import com.dkit.oop.sd2.DAOs.MySqlCourseChoicesDao;
+import com.dkit.oop.sd2.DAOs.MySqlCourseDao;
 import com.dkit.oop.sd2.DAOs.MySqlStudentDao;
-import com.dkit.oop.sd2.DAOs.MySqlUserDao;
-import com.dkit.oop.sd2.DAOs.StudentDaoInterface;
-import com.dkit.oop.sd2.DAOs.UserDaoInterface;
 import com.dkit.oop.sd2.DTOs.Course;
 import com.dkit.oop.sd2.DTOs.Student;
-import com.dkit.oop.sd2.DTOs.User;
 import com.dkit.oop.sd2.Exceptions.DaoException;
 
+import java.sql.SQLOutput;
 import java.util.*;
 
 
@@ -40,67 +39,16 @@ public class App
     {
         App app = new App();
         app.start();
-        //        UserDaoInterface IUserDao = new MySqlUserDao();  //"IUse..." -> "I" for Interface
-        //        // Notice that the userDao reference is an Interface type.
-        //        // This allows for the use of different concrete implementations.
-        //        // e.g. we could replace the MySqlUserDao with an OracleUserDao
-        //        // (accessing an Oracle Database)
-        //        // without changing anything in the Interface.
-        //        // If the Interface doesn't change, then none of the
-        //        // code below that uses the interface needs to change.
-        //        // The 'contract' defined by the interface will not be broken.
-        //        // This means that this code is independent of the code
-        //        // used to access the database. (Reduced coupling).
-        //
-        //        // The Business Objects require that all User DAOs implement
-        //        // the interface called "UserDaoInterface", as the code uses
-        //        // only references of the interface type to access the DAO methods.
-        //        try
-        //        {
-        //            System.out.println("\nCall findAllUsers()");
-        //            List<User> users = IUserDao.findAllUsers();
-        //
-        //            if( users.isEmpty() )
-        //                System.out.println("There are no Users");
-        //
-        //            for( User user : users )
-        //                System.out.println("User: " + user.toString());
-        //
-        //            // test dao - with good username and password
-        //            System.out.println("\nCall: findUserByUsernamePassword()");
-        //            User user = IUserDao.findUserByUsernamePassword("smithj", "password");
-        //            if(user != null)
-        //                System.out.println("User found: " + user);
-        //            else
-        //                System.out.println("Username with that password not found");
-        //
-        //            // test dao - with bad username
-        //            user = IUserDao.findUserByUsernamePassword("madmax", "thunderdome");
-        //            if(user != null)
-        //                System.out.println("User found: " + user);
-        //            else
-        //                System.out.println("Username with that password not found");
-        //            List<User> u1 = IUserDao.findAllUsersLastNameContains("Smith");
-        //            for(User u :u1)
-        //            {
-        //                    System.out.println(u);
-        //            }
-        //        }
-        //        catch( DaoException e )
-        //        {
-        //            e.printStackTrace();
-        //        }
+
     }
         private void start()
     {
 
         // load students
-        StudentManager studentManager = new StudentManager();
-
-        // load courses
-        CourseManager courseManager = new CourseManager();
-        CourseChoiceManager ccmg = new CourseChoiceManager(studentManager,courseManager);
-        mainMenu(studentManager, courseManager,ccmg);
+        MySqlStudentDao studentDao = new MySqlStudentDao();
+        MySqlCourseDao courseDao = new MySqlCourseDao();
+        MySqlCourseChoicesDao courseChoiceDao = new MySqlCourseChoicesDao();
+        mainMenu(studentDao,courseDao,courseChoiceDao);
 
 
         //        Student s1 = new Student(9912333,"29/04/2000","JnJc0429","doremineo@gmail.com");
@@ -134,7 +82,7 @@ public class App
 
     }
 
-        public void mainMenu (StudentManager smg, CourseManager cmg,CourseChoiceManager ccmg)
+        public void mainMenu (MySqlStudentDao studentDao,MySqlCourseDao courseDao,MySqlCourseChoicesDao courseChoicesDao)
         {
 
             boolean loop = true;
@@ -153,10 +101,11 @@ public class App
                             loop = false;
                             break;
                         case LOGIN:
-                            studentMenu(smg,cmg,ccmg);
+                            studentMenu(studentDao,courseDao,courseChoicesDao);
                             break;
                         case REGISTER:
-//                            registerMenu();
+                            registration(studentDao);
+                            break;
                         default:
                             System.out.println("Invalid Input");
                     }
@@ -185,33 +134,38 @@ public class App
         System.out.print("Enter a number to select (0 to quit):> ");
     }
 
-        public void studentMenu (StudentManager smg,CourseManager cmg,CourseChoiceManager ccmg)
+        public void studentMenu (MySqlStudentDao studentDao,MySqlCourseDao courseDao,MySqlCourseChoicesDao courseChoicesDao)
         {
-            boolean isLoggedIn = true;
-            Student currentUsr = null;
+            boolean isLoggedIn=false,cao =false;
+            int caoNum = 0;
+            String dob,pwd;
+            try
+            {
+                while (!cao)
+                {
+                    try
+                    {
+                        System.out.println("Please enter your CAO number: ");
+                        caoNum = keyboard.nextInt();
+                        cao = true;
+                    } catch (InputMismatchException e)
+                    {
+                        System.out.println("Please enter DIGITS only!");
+                        keyboard.next();
+                        System.out.println();
+                    }
+                }
+                System.out.println("Please enter your Date Of Birth (yyyy-mm-dd) : ");
+                dob = keyboard.next();
+                System.out.println("Please enter your password: ");
+                pwd = keyboard.next();
+                isLoggedIn =studentDao.login(caoNum,dob,pwd);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
 
-//            try
-//            {
-//                System.out.println("Please Enter Your CAO Number: ");
-//                int caoNum = keyboard.nextInt();
-//                System.out.println("Please Enter Your Date Of Birth (yyyy-mm-dd): ");
-//                String dateOfBirth = keyboard.next();
-//                System.out.println("Please Enter Your Password: ");
-//                String pass = keyboard.next();
-//                if (ccmg.login(caoNum, dateOfBirth, pass))
-//                {
-//                    isLoggedIn = true;
-//                    currentUsr = new Student(smg.getStudent(caoNum));
-//                }
-//
-//            } catch (InputMismatchException e)
-//            {
-//                System.out.println("Invalid Input");
-//                keyboard.nextLine();
-//            } catch (NoSuchElementException e)
-//            {
-//                System.out.println("DO NOT USE CTRL+D! THIS WILL FORCE THE SYSTEM TO SHUTDOWN! PLEASE RESTART!");
-//            }
 
             if (isLoggedIn)
             {
@@ -228,8 +182,8 @@ public class App
                         switch (options)
                         {
                             case LOGOUT:
-                                    loop = false;
-                                    break;
+                                loop = false;
+                                break;
                             case DISPLAY_COURSE:
                                 break;
                             case DISPLAY_ALL_COURSE:
@@ -255,6 +209,10 @@ public class App
                         keyboard.nextLine();
                     }
                 }
+            }
+            else
+            {
+                System.out.println("Invalid Credentials!");
             }
         }
 
@@ -364,6 +322,73 @@ public class App
 //        }
 //        System.out.print("Enter a number to select (0 to quit):> ");
 //    }
+        public void registration(MySqlStudentDao studentDao)
+        {
+            try
+            {
+                int caoNum = 0;
+                String dob=null,pwd = null;
+                boolean cao=false,date=false,pass = false;
+                while(!cao)
+                {
+                    try
+                    {
+                        System.out.println("Please enter CAO number: ");
+                        caoNum = keyboard.nextInt();
+                        if (Integer.toString(caoNum).matches("\\d+") && Integer.toString(caoNum).length() == 8)
+                        {
+                            cao = true;
+                        } else
+                        {
+                            System.out.println("Please enter 8 digits of number");
+                            System.out.println();
+                        }
+                    }
+                    catch (InputMismatchException e)
+                    {
+                        System.out.println("Please Enter DIGITS ONLY!");
+                        keyboard.next();
+                        System.out.println();
+                    }
+                }
+                while(!date)
+                {
+                    System.out.println("Please enter your Date Of Birth (yyyy-mm-dd): ");
+                    dob = keyboard.next();
+                    if(dob.matches("^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$"))
+                    {
+                        date=true;
+                    }
+                    else
+                    {
+                        System.out.println("Please enter the correct format of date of birth (yyyy-mm-dd)");
+                    }
+                }
+                while(!pass)
+                {
+                    System.out.println("Please enter your password: ");
+                    pwd = keyboard.next();
+                    if(pwd.length()>=8)
+                    {
+                        pass=true;
+                    }
+                    else
+                    {
+                        System.out.println("Password must be at least 8 characters long");
+                    }
+                }
+
+                if(cao&&date&&pass)
+                {
+
+                    studentDao.addStudent(caoNum,dob,pwd);
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
 
         public void addCourse (CourseManager cmg)
         {
