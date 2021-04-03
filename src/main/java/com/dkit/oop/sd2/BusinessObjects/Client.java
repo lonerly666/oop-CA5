@@ -1,34 +1,52 @@
 package com.dkit.oop.sd2.BusinessObjects;
 
+import com.dkit.oop.sd2.Constants.CAOService;
 import com.dkit.oop.sd2.Constants.HomeMenuOption;
 import com.dkit.oop.sd2.Constants.StudentMenuOption;
 import com.dkit.oop.sd2.Constants.UpdateChoiceOption;
 import com.dkit.oop.sd2.DAOs.MySqlCourseChoicesDao;
 import com.dkit.oop.sd2.DAOs.MySqlCourseDao;
-import com.dkit.oop.sd2.DAOs.MySqlStudentDao;
 import com.dkit.oop.sd2.DTOs.Course;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.*;
 
-public class App
+public class Client
 {
     public Scanner keyboard  = new Scanner(System.in);
     public static void main(String[] args)
     {
-        App app = new App();
-        app.start();
+        Client client = new Client();
+        client.start();
 
     }
         private void start()
     {
+        try
+        {
 
-        // load students
-        MySqlStudentDao studentDao = new MySqlStudentDao();
-        MySqlCourseDao courseDao = new MySqlCourseDao();
-        MySqlCourseChoicesDao courseChoiceDao = new MySqlCourseChoicesDao();
-        mainMenu(studentDao,courseDao,courseChoiceDao);
+            Socket s = new Socket("localhost",8080);
+            OutputStream os = s.getOutputStream();
+            PrintWriter socketWriter = new PrintWriter(os,true);
+            Scanner socketReader = new Scanner(s.getInputStream());
+            System.out.println("Client : Port# of this client : "+s.getLocalPort());
+            System.out.println("Client : Port# of Server : "+s.getPort());
+            System.out.println("Client: The Client is running and has connected to the server");
+            mainMenu(s,os,socketWriter,socketReader);
+        }
+        catch (IOException e)
+        {
+            System.out.println("Client : IOException : "+e);
+        }
+
     }
 
-        public void mainMenu (MySqlStudentDao studentDao,MySqlCourseDao courseDao,MySqlCourseChoicesDao courseChoicesDao)
+        public void mainMenu (Socket s,OutputStream os, PrintWriter socketWriter,Scanner socketReader)
         {
 
             boolean loop = true;
@@ -44,13 +62,17 @@ public class App
                     switch (options)
                     {
                         case QUIT_APP:
+                            s.close();
+                            os.close();
+                            socketReader.close();
+                            socketWriter.close();
                             loop = false;
                             break;
                         case LOGIN:
-                            studentMenu(studentDao,courseDao,courseChoicesDao);
+                            studentMenu(s,os,socketWriter,socketReader);
                             break;
                         case REGISTER:
-                            registration(studentDao);
+                            registration(s,os,socketWriter,socketReader);
                             break;
                         default:
                             System.out.println("Invalid Input");
@@ -68,6 +90,10 @@ public class App
                     System.out.println("Invalid Input");
                     keyboard.nextLine();
                 }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -80,7 +106,7 @@ public class App
         System.out.print("Enter a number to select (0 to quit):> ");
     }
 
-        public void studentMenu (MySqlStudentDao studentDao,MySqlCourseDao courseDao,MySqlCourseChoicesDao courseChoicesDao)
+        public void studentMenu (Socket s,OutputStream os, PrintWriter socketWriter,Scanner socketReader)
         {
             boolean isLoggedIn=false,cao =false;
             int caoNum = 0;
@@ -105,14 +131,24 @@ public class App
                 dob = keyboard.next();
                 System.out.println("Please enter your password: ");
                 pwd = keyboard.next();
-                isLoggedIn =studentDao.login(caoNum,dob,pwd);
+                String breaks = CAOService.BREAKING_CHARACTER;
+                String task = CAOService.LOGIN_COMMAND;
+                String command = task+breaks+caoNum+breaks+dob+breaks+pwd;
+                os = s.getOutputStream();
+                socketWriter = new PrintWriter(os,true);
+                socketWriter.println(command);
+                socketReader = new Scanner(s.getInputStream());
+                String taskString =socketReader.nextLine();
+                System.out.println(taskString);
+                if(taskString.equals("Welcome Back!"))
+                {
+                    isLoggedIn=true;
+                }
             }
             catch (Exception e)
             {
                 e.printStackTrace();
             }
-
-
             if (isLoggedIn)
             {
                 boolean loop = true;
@@ -131,16 +167,16 @@ public class App
                                 loop = false;
                                 break;
                             case DISPLAY_COURSE:
-                                displayCourse(courseDao);
+                                displayCourse(s,os,socketWriter,socketReader);
                                 break;
                             case DISPLAY_ALL_COURSE:
-                                displayAllCourse(courseDao);
+                                displayAllCourse(s,os,socketWriter,socketReader,caoNum);
                                 break;
                             case DISPLAY_CURRENT_CHOICES:
-                                displayCurrentChoice(courseChoicesDao, caoNum);
+                                displayCurrentChoice(s,os,socketWriter,socketReader,caoNum);
                                break;
                             case UPDATE_CURRENT_CHOICES:
-                                updateChoice(courseDao,courseChoicesDao, caoNum);
+                                updateChoice(s,os,socketWriter,socketReader,caoNum);
                                 break;
                             default:
                                 System.out.println("Invalid Input");
@@ -160,10 +196,6 @@ public class App
                     }
                 }
             }
-            else
-            {
-                System.out.println("Invalid Credentials!");
-            }
         }
 
         public void printStudentMainMenu () {
@@ -182,105 +214,7 @@ public class App
         }
         System.out.print("Enter a number to select (0 to quit):> ");
     }
-
-//        public void adminMenu (StudentManager smg, CourseManager cmg, CourseChoicesManager ccmg)
-//        {
-//            boolean loop = true;
-//            int choose;
-//            AdminMenuOptions options;
-//            while (loop)
-//            {
-//                printAdminMainMenu();
-//                try
-//                {
-//                    choose = keyboard.nextInt();
-//                    options = AdminMenuOptions.values()[choose];
-//                    switch (options)
-//                    {
-//                        case EXIT:
-//                            loop = false;
-//                            break;
-//                        case ADD_A_COURSE:
-//                            addCourse(cmg);
-//                            break;
-//                        case REMOVE_A_COURSE:
-//                            removeCourse(cmg, ccmg);
-//                            break;
-//                        case DISPLAY_ALL_COURSE:
-//                            for (Course c : cmg.getAllCourses())
-//                            {
-//                                System.out.println(c);
-//                            }
-//                            break;
-//                        case DISPLAY_COURSE_WITH_ID:
-//                            try
-//                            {
-//                                System.out.print("Please enter a course Id that you want to view: ");
-//                                String courseId = keyboard.next();
-//                                System.out.println(ccmg.getCourseDetails(courseId));
-//                            } catch (NullPointerException e)
-//                            {
-//                                System.out.println("No such course!");
-//                            }
-//                            break;
-//                        case ADD_STUDENT:
-//                            addStudent(smg);
-//                            break;
-//                        case REMOVE_STUDENT:
-//                            try
-//                            {
-//                                System.out.println("Please enter CAO Number: ");
-//                                int caoNum = keyboard.nextInt();
-//                                if (ccmg.selectedChoice.containsKey(caoNum))
-//                                {
-//                                    ccmg.selectedChoice.remove(caoNum);
-//                                }
-//                                smg.removeStudent(caoNum);
-//                            } catch (NullPointerException e)
-//                            {
-//                                System.out.println("Can't find specific student");
-//                            }
-//                            break;
-//                        case DISPLAY_STUDENT:
-//                            try
-//                            {
-//                                System.out.println("Please enter CAO Number :");
-//                                int caoNum = keyboard.nextInt();
-//                                System.out.println(ccmg.getStudentDetails(caoNum));
-//                            } catch (NullPointerException e)
-//                            {
-//                                System.out.println("Can't find specific student");
-//                            }
-//                            break;
-//                        default:
-//                            System.out.println("Invalid Input");
-//                    }
-//                } catch (InputMismatchException e)
-//                {
-//                    System.out.println("Invalid Input");
-//                    keyboard.nextLine();
-//                } catch (NoSuchElementException e)
-//                {
-//                    System.out.println("DO NOT USE CTRL+D! THIS WILL FORCE THE SYSTEM TO SHUTDOWN! PLEASE RESTART!");
-//                    loop = false;
-//                } catch (IndexOutOfBoundsException e)
-//                {
-//                    System.out.println("Invalid Input");
-//                    keyboard.nextLine();
-//                }
-//            }
-//
-//        }
-//
-//        public void printAdminMainMenu () {
-//        System.out.println("\n Option to select:");
-//        for (int i = 0; i < AdminMenuOptions.values().length; i++)
-//        {
-//            System.out.println("\t" + i + "- " + AdminMenuOptions.values()[i].toString());
-//        }
-//        System.out.print("Enter a number to select (0 to quit):> ");
-//    }
-        public void registration(MySqlStudentDao studentDao)
+        public void registration(Socket s,OutputStream os,PrintWriter socketWriter,Scanner socketReader)
         {
             try
             {
@@ -336,11 +270,15 @@ public class App
                     }
                 }
 
-                if(cao&&date&&pass)
-                {
-
-                    studentDao.addStudent(caoNum,dob,pwd);
-                }
+                    String task = CAOService.REGISTER_COMMAND;
+                    String breaks = CAOService.BREAKING_CHARACTER;
+                    String command = task+breaks+caoNum+breaks+dob+breaks+pwd;
+                    os = s.getOutputStream();
+                    socketWriter = new PrintWriter(os,true);
+                    socketWriter.println(command);
+                    socketReader = new Scanner(s.getInputStream());
+                    String taskString = socketReader.nextLine();
+                    System.out.println("Client : Response from server: "+ taskString);
             }
             catch (Exception e)
             {
@@ -348,20 +286,29 @@ public class App
             }
         }
 
-        public void displayCourse(MySqlCourseDao courseDao)
+        public void displayCourse(Socket s,OutputStream os, PrintWriter socketWriter,Scanner socketReader)
         {
             try
             {
+                String breaks = CAOService.BREAKING_CHARACTER;
+                String task   = CAOService.DISPLAY_COURSE;
                 System.out.println("Please enter a course ID: ");
                 String courseId = keyboard.next();
-                Course c = courseDao.getSpecificCourse(courseId);
-                if(c!=null)
+                os = s.getOutputStream();
+                socketWriter = new PrintWriter(os,true);
+                String command = task+breaks+courseId;
+                socketWriter.println(command);
+                socketReader = new Scanner(s.getInputStream());
+                String response = socketReader.nextLine();
+                Object obj=JSONValue.parse(response);
+                if(obj==null)
                 {
-                    System.out.println(c);
+                    System.out.println(response);
                 }
-                else
-                {
-                    System.out.println("No such course");
+                else {
+                    JSONObject jsonObject = (JSONObject) obj;
+                    String status = (String) jsonObject.get("course");
+                    System.out.println(status);
                 }
             }
             catch (Exception e)
@@ -370,17 +317,23 @@ public class App
             }
         }
 
-        public void displayAllCourse(MySqlCourseDao courseDao)
+        public void displayAllCourse(Socket s,OutputStream os, PrintWriter socketWriter,Scanner socketReader,int caoNum)
         {
             try
             {
-                List<Course> courseList = courseDao.findAllCourse();
-                System.out.println("\nHere are all available courses: ");
-                int i =1;
-                for(Course c:courseList)
+                String task = CAOService.DISPLAY_ALL_COURSE;
+                os = s.getOutputStream();
+                socketWriter = new PrintWriter(os,true);
+                socketWriter.println(task);
+                socketReader = new Scanner(s.getInputStream());
+                String response = socketReader.nextLine();
+                Object obj=JSONValue.parse(response);
+                JSONObject jsonObject = (JSONObject) obj;
+                JSONArray jsonArray = (JSONArray) jsonObject.get("course");
+                Iterator<String> iterator = jsonArray.iterator();
+                while(iterator.hasNext())
                 {
-                    System.out.println(i+": "+c);
-                    i++;
+                    System.out.println(iterator.next());
                 }
             }
             catch (Exception e)
@@ -389,17 +342,29 @@ public class App
             }
         }
 
-        public void displayCurrentChoice(MySqlCourseChoicesDao courseChoicesDao,int caoNum)
+        public void displayCurrentChoice(Socket s,OutputStream os, PrintWriter socketWriter,Scanner socketReader,int caoNum)
         {
-            try
-            {
-                List <String> courseList = courseChoicesDao.getStudentChoices(caoNum);
-                System.out.println("\nHere are all your current choices: ");
-                int i =1;
-                for(String s:courseList)
-                {
-                    System.out.println(i+": "+s);
-                    i++;
+            try {
+                String task = CAOService.DISPLAY_CURRENT_COURSE;
+                String breaks = CAOService.BREAKING_CHARACTER;
+                String command = task + breaks + caoNum;
+                os = s.getOutputStream();
+                socketWriter = new PrintWriter(os, true);
+                socketWriter.println(command);
+                socketReader = new Scanner(s.getInputStream());
+                String response = socketReader.nextLine();
+                Object obj = JSONValue.parse(response);
+                if (obj == null) {
+                    System.out.println(response);
+                }
+                else {
+                    JSONObject jsonObject = (JSONObject) obj;
+                    JSONArray jsonArray = (JSONArray) jsonObject.get("choice");
+                    Iterator<String> iterator = jsonArray.iterator();
+                    System.out.println("Here are your choices: ");
+                    while (iterator.hasNext()) {
+                        System.out.println(iterator.next());
+                    }
                 }
             }
             catch (Exception e)
@@ -408,7 +373,7 @@ public class App
             }
         }
 
-        public void updateChoice (MySqlCourseDao courseDao,MySqlCourseChoicesDao courseChoicesDao,int caoNum)
+        public void updateChoice (Socket s,OutputStream os, PrintWriter socketWriter,Scanner socketReader,int caoNum)
         {
             boolean loop = true;
             UpdateChoiceOption options;
@@ -426,10 +391,10 @@ public class App
                             loop = false;
                             break;
                         case REMOVE_COURSE:
-                            removeCourse(courseChoicesDao,caoNum);
+                            removeCourse(s,os,socketWriter,socketReader,caoNum);
                             break;
                         case ADD_COURSE:
-                            addCourse(courseDao,courseChoicesDao,caoNum);
+                            addCourse(s,os,socketWriter,socketReader,caoNum);
                             break;
                         default:
                             System.out.println("Invalid Input");
@@ -451,10 +416,13 @@ public class App
 
         }
 
-        public void removeCourse(MySqlCourseChoicesDao courseChoicesDao,int caoNum)
+        public void removeCourse(Socket s,OutputStream os, PrintWriter socketWriter,Scanner socketReader,int caoNum)
         {
             try
             {
+                String breaks = CAOService.BREAKING_CHARACTER;
+                String task = CAOService.REMOVE_COURSE;
+                MySqlCourseChoicesDao courseChoicesDao = new MySqlCourseChoicesDao();
                 List<String> courseList = courseChoicesDao.getStudentChoices(caoNum);
                 if(courseList.isEmpty())
                 {
@@ -464,28 +432,20 @@ public class App
                 {
                     System.out.println("Here is your choices: ");
                     int i = 1;
-                    for (String s : courseList)
+                    for (String a : courseList)
                     {
-                        System.out.println(i + ": " + s);
+                        System.out.println(i + ": " + a);
                         i++;
                     }
                     System.out.println("Please enter course ID that you want to remove: ");
                     String courseId = keyboard.next();
-                    if(courseChoicesDao.getStudentChoices(caoNum).contains(courseId))
-                    {
-                        if (courseChoicesDao.removeChoice(caoNum, courseId))
-                        {
-                            System.out.println("Course Removed");
-                        }
-                        else
-                        {
-                            System.out.println("Opps, Something went Wrong");
-                        }
-                    }
-                    else
-                    {
-                        System.out.println("Please enter a correct course ID");
-                    }
+                    String command = task+breaks+courseId+breaks+caoNum;
+                    os = s.getOutputStream();
+                    socketWriter = new PrintWriter(os,true);
+                    socketWriter.println(command);
+                    socketReader = new Scanner(s.getInputStream());
+                    String res = socketReader.nextLine();
+                    System.out.println(res);
                 }
             }
             catch (Exception e)
@@ -494,10 +454,13 @@ public class App
             }
         }
 
-        public void addCourse(MySqlCourseDao courseDao, MySqlCourseChoicesDao courseChoicesDao,int caoNum)
+        public void addCourse(Socket s,OutputStream os, PrintWriter socketWriter,Scanner socketReader,int caoNum)
         {
             try
             {
+                String breaks = CAOService.BREAKING_CHARACTER;
+                String task = CAOService.ADD_COURSE;
+                MySqlCourseDao courseDao = new MySqlCourseDao();
                 List<Course> courseList = courseDao.findAllCourse();
                 System.out.println("Here are all available courses: ");
                 int i =1;
@@ -508,27 +471,20 @@ public class App
                 }
                 System.out.println("Please enter a course ID that you want to add: ");
                 String courseId = keyboard.next();
+
                 if(courseDao.getSpecificCourse(courseId)==null)
                 {
                     System.out.println("Please enter a correct course ID");
                 }
                 else
                 {
-                    if(courseChoicesDao.getStudentChoices(caoNum).contains(courseId))
-                    {
-                        System.out.println("You have already chosen this course!");
-                    }
-                    else
-                    {
-                        if(courseChoicesDao.addChoice(caoNum,courseId))
-                        {
-                            System.out.println("Course Added");
-                        }
-                        else
-                        {
-                            System.out.println("Opps, something went wrong please try again");
-                        }
-                    }
+                    String command = task+breaks+courseId+breaks+caoNum;
+                    os = s.getOutputStream();
+                    socketWriter = new PrintWriter(os,true);
+                    socketWriter.println(command);
+                    socketReader = new Scanner(s.getInputStream());
+                    String res = socketReader.nextLine();
+                    System.out.println(res);
                 }
 
             }
