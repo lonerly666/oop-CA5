@@ -66,7 +66,7 @@ public class MySqlStudentDao extends MySqlDao implements StudentDaoInterface
     }
 
     @Override
-    public void addStudent(int caoNum,String dob,String pwd) throws DaoException
+    public boolean addStudent(int caoNum,String dob,String pwd) throws DaoException
     {
         Connection con = null;
         PreparedStatement prep = null;
@@ -80,7 +80,7 @@ public class MySqlStudentDao extends MySqlDao implements StudentDaoInterface
             rs = prep.executeQuery();
             if(rs.next())
             {
-                System.out.println("This cao number has been taken!");
+                return false;
             }
             else
             {
@@ -90,7 +90,7 @@ public class MySqlStudentDao extends MySqlDao implements StudentDaoInterface
                 prep.setString(2,dob);
                 prep.setString(3,pwd);
                 prep.executeUpdate();
-                System.out.println("Welcome! You have successfully registered!");
+                return true;
             }
         }
         catch (SQLException e)
@@ -118,7 +118,6 @@ public class MySqlStudentDao extends MySqlDao implements StudentDaoInterface
                 throw new DaoException("findAllUsers() " + e.getMessage());
             }
         }
-
     }
 
     @Override
