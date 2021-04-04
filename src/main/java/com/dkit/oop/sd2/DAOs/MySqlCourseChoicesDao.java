@@ -1,6 +1,5 @@
 package com.dkit.oop.sd2.DAOs;
 
-import com.dkit.oop.sd2.BusinessObjects.CourseChoiceManager;
 import com.dkit.oop.sd2.Exceptions.DaoException;
 
 import java.sql.Connection;

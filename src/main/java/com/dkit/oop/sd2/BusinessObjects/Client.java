@@ -25,7 +25,7 @@ public class Client
         client.start();
 
     }
-        private void start()
+       public void start()
     {
         try
         {
@@ -361,10 +361,13 @@ public class Client
                     JSONObject jsonObject = (JSONObject) obj;
                     JSONArray jsonArray = (JSONArray) jsonObject.get("choice");
                     Iterator<String> iterator = jsonArray.iterator();
-                    System.out.println("Here are your choices: ");
+                    System.out.println("\nHere are your choices: ");
+                    int i =1;
                     while (iterator.hasNext()) {
-                        System.out.println(iterator.next());
+                        System.out.println(i+": "+iterator.next());
+                        i++;
                     }
+                    System.out.println();
                 }
             }
             catch (Exception e)

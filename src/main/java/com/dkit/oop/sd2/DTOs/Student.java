@@ -14,7 +14,20 @@ public class Student
     // a new Student object, and returns that new object (a clone)
     // (add here)
 
-    public Student( Student copyStudent)
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Student student = (Student) o;
+        return caoNumber == student.caoNumber && dateOfBirth.equals(student.dateOfBirth) && password.equals(student.password);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(caoNumber, dateOfBirth, password);
+    }
+
+    public Student(Student copyStudent)
     {
         this.caoNumber = copyStudent.caoNumber;
         this.dateOfBirth = copyStudent.dateOfBirth;
@@ -57,22 +70,6 @@ public class Student
         this.password = password;
     }
 
-
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Student student = (Student) o;
-        return caoNumber == student.caoNumber && Objects.equals(dateOfBirth, student.dateOfBirth) && Objects.equals(password, student.password) ;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(caoNumber, dateOfBirth, password);
-    }
 
     @Override
     public String toString() {

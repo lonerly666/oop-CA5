@@ -28,7 +28,7 @@ public class MySqlCourseDao extends MySqlDao implements CourseDaoInterface
             while(rs.next())
             {
                 String courseId = rs.getString("courseId");
-                String level = rs.getString("level");
+                int level = rs.getInt("level");
                 String title = rs.getString("title");
                 String institution = rs.getString("institution");
                 Course c = new Course(courseId,level,title,institution);
@@ -68,7 +68,6 @@ public class MySqlCourseDao extends MySqlDao implements CourseDaoInterface
         Connection con = null;
         PreparedStatement prep = null;
         ResultSet rs = null;
-        Course c = null;
         try
         {
             con = this.getConnection();
@@ -79,10 +78,10 @@ public class MySqlCourseDao extends MySqlDao implements CourseDaoInterface
             while(rs.next())
             {
                 String course = rs.getString("courseId");
-                String level = rs.getString("level");
+                int level = rs.getInt("level");
                 String title = rs.getString("title");
                 String institution = rs.getString("institution");
-                c  = new Course(course,level,title,institution);
+                return new Course(course,level,title,institution);
             }
         }
         catch (SQLException e)
@@ -111,7 +110,7 @@ public class MySqlCourseDao extends MySqlDao implements CourseDaoInterface
                 throw new DaoException("getSpecificCourse() "+e.getMessage());
             }
         }
-        return c;
+        return null;
     }
 
 }
