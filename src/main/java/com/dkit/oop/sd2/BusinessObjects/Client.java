@@ -1,9 +1,6 @@
 package com.dkit.oop.sd2.BusinessObjects;
 
-import com.dkit.oop.sd2.Constants.CAOService;
-import com.dkit.oop.sd2.Constants.HomeMenuOption;
-import com.dkit.oop.sd2.Constants.StudentMenuOption;
-import com.dkit.oop.sd2.Constants.UpdateChoiceOption;
+import com.dkit.oop.sd2.Constants.*;
 import com.dkit.oop.sd2.DAOs.MySqlCourseChoicesDao;
 import com.dkit.oop.sd2.DAOs.MySqlCourseDao;
 import com.dkit.oop.sd2.DTOs.Course;
@@ -227,7 +224,7 @@ public class Client
                     {
                         System.out.println("Please enter CAO number: ");
                         caoNum = keyboard.nextInt();
-                        if (Integer.toString(caoNum).matches("\\d+") && Integer.toString(caoNum).length() == 8)
+                        if (Integer.toString(caoNum).matches(RegexValidator.cao) && Integer.toString(caoNum).length() == 8)
                         {
                             cao = true;
                         } else
@@ -247,13 +244,13 @@ public class Client
                 {
                     System.out.println("Please enter your Date Of Birth (yyyy-mm-dd): ");
                     dob = keyboard.next();
-                    if(dob.matches("^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$"))
+                    if(dob.matches(RegexValidator.date))
                     {
                         date=true;
                     }
                     else
                     {
-                        System.out.println("Please enter the correct format of date of birth (yyyy-mm-dd)");
+                        System.out.println("Please enter the correct format of date of birth (yyyy-mm-dd)\n");
                     }
                 }
                 while(!pass)
@@ -266,7 +263,7 @@ public class Client
                     }
                     else
                     {
-                        System.out.println("Password must be at least 8 characters long");
+                        System.out.println("Password must be at least 8 characters long\n");
                     }
                 }
 
