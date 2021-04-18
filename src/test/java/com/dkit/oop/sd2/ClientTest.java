@@ -10,9 +10,10 @@ import com.dkit.oop.sd2.DTOs.Student;
 import com.dkit.oop.sd2.Exceptions.DaoException;
 import org.junit.Test;
 
-/**
- * Unit test for simple App.
- */
+import java.util.ArrayList;
+import java.util.List;
+
+
 public class ClientTest
 {
 
@@ -72,7 +73,7 @@ public class ClientTest
     public void TestAddCourse() throws DaoException
     {
         MySqlCourseChoicesDao courseChoicesDao = new MySqlCourseChoicesDao();
-        int caoNum  = 66667777;
+        int caoNum  = 11437765;
         String courseId = "A001";
         boolean result = courseChoicesDao.addChoice(caoNum,courseId);
         assertTrue(result);
@@ -81,9 +82,20 @@ public class ClientTest
     public void TestRemoveCourse()throws DaoException
     {
         MySqlCourseChoicesDao courseChoicesDao = new MySqlCourseChoicesDao();
-        int caoNum = 66667777;
-        String courseId = "D001";
+        int caoNum = 11437765;
+        String courseId = "A001";
         boolean result = courseChoicesDao.removeChoice(caoNum,courseId);
         assertTrue(result);
+    }
+    @Test
+    public void TestGetCourseChoice()throws DaoException
+    {
+        MySqlCourseChoicesDao courseChoicesDao = new MySqlCourseChoicesDao();
+        int caoNum = 11324476;
+        List<String> res = courseChoicesDao.getStudentChoices(caoNum);
+        List<String>expect = new ArrayList<>();
+        expect.add("D002");
+        expect.add("D003");
+        assertTrue(expect.equals(res));
     }
 }
